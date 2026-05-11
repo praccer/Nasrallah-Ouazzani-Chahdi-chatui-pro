@@ -11,103 +11,77 @@ const Chat = () => {
   const scrollRef = useRef(null);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight);
   }, [messages]);
 
   const handleSend = () => {
-    if (inputText.trim() === "") return;
-
-    dispatch(addMessage({
-      id: Date.now(),
-      text: inputText,
-      sender: 'agent',
-      timestamp: new Date().toLocaleTimeString()
-    }));
-
-    const userText = inputText.toLowerCase();
+    if (!inputText.trim()) return;
+    dispatch(addMessage({ id: Date.now(), text: inputText, sender: 'agent', timestamp: new Date().toLocaleTimeString() }));
     setInputText("");
 
     setTimeout(() => {
-      const found = responsesData.responses.find(item => 
-        item.triggers.some(t => userText.includes(t))
-      );
-
-      const reply = found 
-        ? found.message 
-        : responsesData.defaultResponses[Math.floor(Math.random() * responsesData.defaultResponses.length)];
-
-      dispatch(addMessage({
-        id: Date.now() + 1,
-        text: reply,
-        sender: 'ARIA',
-        timestamp: new Date().toLocaleTimeString()
-      }));
-    }, 1200); 
+      const match = responsesData.responses.find(r => r.triggers.some(t => inputText.toLowerCase().includes(t)));
+      const reply = match ? match.message : responsesData.defaultResponses[0];
+      dispatch(addMessage({ id: Date.now() + 1, text: reply, sender: 'ARIA', timestamp: new Date().toLocaleTimeString() }));
+    }, 1000);
   };
 
   return (
-    <div className="content">
-      <div className="page-container" style={{ maxWidth: '600px' }}>
-        <h2>ARIA Medical Chat</h2>
-        
-        {/* CHAT BOX */}
-        <div 
-          ref={scrollRef}
-          style={{ 
-            height: '450px', 
-            overflowY: 'auto', 
-            backgroundColor: darkMode ? '#1a1a1a' : '#fff',
-            border: '1px solid #444',
-            borderRadius: '12px',
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '15px'
-          }}
-        >
-          {messages.map(m => (
-            <div 
-              key={m.id} 
-              style={{ 
-                alignSelf: m.sender === 'agent' ? 'flex-end' : 'flex-start',
-                maxWidth: '80% '
-              }}
-            >
-              <div style={{ 
-                padding: '12px 16px', 
-                borderRadius: '15px', 
-                fontSize: '0.95rem',
-                backgroundColor: m.sender === 'agent' ? '#007bff' : '#333',
-                color: '#fff',
-                borderBottomRightRadius: m.sender === 'agent' ? '2px' : '15px',
-                borderBottomLeftRadius: m.sender === 'agent' ? '15px' : '2px'
-              }}>
-                {m.text}
+    <div className="container py-5">
+      <div className="row justify-content-center">
+        <div className="col-md-10 col-lg-8">
+          
+          {/* Main Card Container */}
+          <div className={`card shadow-lg border-0 rounded-4 overflow-hidden ${darkMode ? 'bg-dark border-secondary text-white' : 'bg-white'}`}>
+            
+            {/* Chat Header */}
+            <div className="card-header bg-primary text-white p-3 d-flex align-items-center border-0">
+              <div className="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center me-3 fw-bold shadow-sm" style={{width: '45px', height: '45px'}}>
+                A
               </div>
-              <small style={{ fontSize: '0.7rem', opacity: 0.6, display: 'block', marginTop: '4px', textAlign: m.sender === 'agent' ? 'right' : 'left' }}>
-                {m.sender} • {m.timestamp}
-              </small>
+              <div>
+                <h5 className="mb-0 fw-bold">ARIA Medical Assistant</h5>
+                <small className="opacity-75">Online | Powered by AI</small>
+              </div>
             </div>
-          ))}
-        </div>
 
-       
-        <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
-          <input 
-            style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #444', backgroundColor: darkMode ? '#222' : '#fff', color: darkMode ? '#fff' : '#000' }}
-            value={inputText} 
-            onChange={(e) => setInputText(e.target.value)} 
-            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Describe your symptoms..."
-          />
-          <button 
-            onClick={handleSend}
-            style={{ backgroundColor: '#007bff', color: 'white', border: 'none', fontWeight: 'bold' }}
-          >
-            Send
-          </button>
+            {/* Chat Messages Area */}
+            <div className={`card-body p-4 overflow-auto ${darkMode ? 'bg-dark' : 'bg-light'}`} style={{ height: '500px' }} ref={scrollRef}>
+              {messages.length === 0 && (
+                <div className="text-center mt-5 text-muted">
+                  <p className="fst-italic">How can I help you with your symptoms today?</p>
+                </div>
+              )}
+              {messages.map(m => (
+                <div key={m.id} className={`d-flex mb-4 ${m.sender === 'agent' ? 'justify-content-end' : 'justify-content-start'}`}>
+                  <div className={`p-3 shadow-sm rounded-4 ${m.sender === 'agent' ? 'bg-primary text-white' : (darkMode ? 'bg-secondary text-white' : 'bg-white text-dark')}`} style={{ maxWidth: '80%' }}>
+                    <p className="mb-1">{m.text}</p>
+                    <div className="text-end">
+                      <small className="opacity-50" style={{ fontSize: '0.65rem' }}>{m.timestamp}</small>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Input Box Footer */}
+            <div className={`card-footer p-3 border-0 ${darkMode ? 'bg-dark' : 'bg-white'}`}>
+              <div className="input-group input-group-lg shadow-sm">
+                <input 
+                  type="text" 
+                  className={`form-control border-0 px-4 ${darkMode ? 'bg-secondary text-white' : ''}`}
+                  placeholder="Describe your symptoms..."
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                />
+                <button className="btn btn-primary px-4 fw-bold" onClick={handleSend}>
+                  SEND
+                </button>
+              </div>
+            </div>
+            
+          </div>
         </div>
       </div>
     </div>

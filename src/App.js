@@ -1,23 +1,21 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import Navbar from './components/Navbar'; 
 import Dashboard from './pages/Dashboard';
 import Chat from './pages/Chat';
 import Settings from './pages/Settings';
 import './App.css'; 
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
   const darkMode = useSelector((state) => state.settings.darkMode);
 
   return (
-    
     <div className={darkMode ? 'app dark' : 'app'}>
       <BrowserRouter>
-        <nav className="navbar">
-          <Link to="/">Dashboard</Link>
-          <Link to="/chat">Chat</Link>
-          <Link to="/settings">Settings</Link>
-        </nav>
+        
+        <Navbar /> 
 
         <div className="content">
           <Routes>
